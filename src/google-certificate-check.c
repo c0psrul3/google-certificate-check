@@ -97,8 +97,9 @@ static int init_client_ip(int *sock, const unsigned char ip[4],
 	{
 	perror("connect");
 	close(s);
-	return(0);
+	return 0;
 	}
+
     puts("connected");
     *sock = s;
     return 1;
