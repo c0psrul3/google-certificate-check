@@ -135,7 +135,8 @@ static SSL *start_ssl(const char *hostname)
 
     int sock;
     ret = init_client(&sock, hostname, 443, SOCK_STREAM);
-    assert(ret);
+    if(!ret)
+	return NULL;
 
     BIO *sbio = BIO_new_socket(sock, 0);
     SSL_set_bio(ssl, sbio, sbio);
@@ -291,6 +292,9 @@ int main(int argc, char **argv)
 	}
 
     SSL *ssl = start_ssl(hostname);
+    if(!ssl)
+	return 4;
+
     dump_chain(ssl);
     ssl_name_check(ssl, hostname);
     look_up_hash(ssl);
