@@ -1,0 +1,19 @@
+In order to build this, you'll need:
+
+  * Unbound: http://www.unbound.net/download.html.
+
+  * OpenSSL: http://openssl.org/source/.
+
+If you see anything weird, please send me the command line and
+certificate chain (i.e. all the text in:
+
+-----BEGIN CERTIFICATE-----
+.
+.
+.
+-----END CERTIFICATE-----
+
+There may be multiple certificates, send them all. Don't forget I need
+the host name!
+
+Ben Laurie (benl@google.com)
