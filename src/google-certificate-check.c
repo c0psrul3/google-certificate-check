@@ -214,7 +214,7 @@ static void ssl_name_check(const SSL *ssl, const char *hostname)
 	}
     }
 
-static void look_up_hash(const SSL *ssl)
+static void look_up_hash(const SSL *ssl, int recurse, int debug)
     {
     X509 *cert = SSL_get_peer_certificate(ssl);
     assert(cert);
@@ -239,7 +239,16 @@ static void look_up_hash(const SSL *ssl)
     struct ub_ctx *ub_ctx = ub_ctx_create();
     assert(ub_ctx);
 
-    ret = ub_ctx_resolvconf(ub_ctx, NULL);
+    ret = ub_ctx_debuglevel(ub_ctx, debug);
+    assert(ret == 0);
+
+    if (!recurse)
+	{
+	ret = ub_ctx_resolvconf(ub_ctx, NULL);
+	assert(ret == 0);
+	}
+
+    ret = ub_ctx_add_ta_file(ub_ctx, "keys");
     assert(ret == 0);
 
     struct ub_result *result;
@@ -278,18 +287,40 @@ static void look_up_hash(const SSL *ssl)
     float percent = (100. * days) / (last - first + 1);
     printf("Times seen: %d/%d (%g%%)\n", days, last - first + 1, percent);
 
+    if (!result->secure)
+	{
+	printf("RESULT IS NOT SECURE! Try -r?\n");
+	exit(4);
+	}
+
     assert(!result->data[1]);
     }
 
 int main(int argc, char **argv)
     {
-    const char *hostname = argv[1];
+    int recurse = 0;
+    int debug = 0;
+    int ch;
+    while ((ch = getopt(argc, argv, "rd:")) != -1)
+	switch(ch)
+	    {
+	case 'r': recurse = 1; break;
+	case 'd': debug = atoi(optarg); break;
+	default: argc = 0; break;
+	    }
 
-    if (argc < 2)
+    argc -= optind;
+    argv += optind;
+
+    if (argc < 1)
 	{
-	fprintf(stderr, "%s <host name>\n", argv[0]);
+	fprintf(stderr, "%s [-r] [-d <level>] <host name>\n\n", argv[0]);
+	fprintf(stderr, "-r	Resolve recursively (don't use resolv.conf)\n");
+	fprintf(stderr, "-d <n>	Debug level\n");
 	exit(-1);
 	}
+
+    const char *hostname = argv[0];
 
     SSL *ssl = start_ssl(hostname);
     if(!ssl)
@@ -297,7 +328,7 @@ int main(int argc, char **argv)
 
     dump_chain(ssl);
     ssl_name_check(ssl, hostname);
-    look_up_hash(ssl);
+    look_up_hash(ssl, recurse, debug);
 
     return 0;
     }
