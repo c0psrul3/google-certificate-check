@@ -162,7 +162,13 @@ static int check_name(const char *hostname, const char *cn)
     {
     if (!strcmp(hostname, cn))
 	return 1;
-    assert(!"write check for wildcards");
+    if (cn[0] == '*' && cn[1] == '.')
+	{
+	const char *t = strchr(hostname, '.');
+	if (!t)
+	    return 0;
+	return !strcmp(t + 1, cn + 2);
+	}
     return 0;
     }
 

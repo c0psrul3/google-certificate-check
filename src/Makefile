@@ -1,7 +1,7 @@
 CFLAGS = -Wall -Werror -I/usr/local/include -g
 LDFLAGS = -L/usr/local/lib
 
-VERSION = 0.0
+VERSION = 0.1
 
 all: google-certificate-check
 
